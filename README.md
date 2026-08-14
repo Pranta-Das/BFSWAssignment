@@ -1,20 +1,17 @@
-# BFSW Take-Home: Object Detection, Tracking and Failure Analysis
+# BFSW Assignment: Object Detection, Tracking and Failure Analysis
 
 ## What this does
 
 A fixed RGB camera watches a workspace. The pipeline finds a target object,
 tracks it, and reports its pixel position (u, v) each frame.
 
-A detector and a tracker run in **two independent branches**. This is the
-main design decision: running them separately makes it possible to say which
-component failed, instead of only that the system failed.
+
 
 ## Setup
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate          # Windows
-# source .venv/bin/activate     # macOS / Linux
+source .venv/bin/activate     # macOS / Linux
 pip install -r requirements.txt
 ```
 
@@ -36,18 +33,20 @@ python verify.py --video data/video_b.mp4 --frame 515 --good-frame 120 \
 
 ## Files
 
-| file | purpose |
-|---|---|
-| `detect_track.py` | detection + tracking, writes the per-frame CSV log |
-| `analyze.py` | summary numbers, failure windows, comparison figure |
-| `verify.py` | tests the cause of a specific failure |
-| `check_videos.py` | sanity-checks recordings before processing |
-| `experiment_log.md` | what was tried, what failed, and why |
+
+(detect_track.py) detection + tracking, writes the per-frame CSV log 
+
+(analyze.py) summary numbers, failure windows, comparison figure
+
+(verify.py)  tests the cause of a specific failure
+
+(check_videos.py)  sanity-checks recordings before processing
+
+(experiment_log.md)  what was tried, what failed, and why
+
 
 ## Videos
 
-Not stored in this repository (file size). Download: <add your link>
+Check thhe result folder.
 
-## Use of AI Tools
 
-<fill this in honestly and specifically>
