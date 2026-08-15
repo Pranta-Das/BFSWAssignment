@@ -1,0 +1,19 @@
+# Virtual environment
+.venv/
+venv/
+
+# Videos are large - share via Drive link in the README
+data/*.mp4
+data/*.mov
+results/*.mp4
+
+# Model weights download automatically on first run
+*.pt
+
+# Python
+__pycache__/
+*.pyc
+
+# Editor / OS
+.vscode/
+.DS_Store

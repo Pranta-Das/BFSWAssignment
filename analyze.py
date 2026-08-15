@@ -1,21 +1,17 @@
-
-
-## Reads the two CSV logs and make a analysis of the result.
-
-
+## Analyze the tracking results
 
 import argparse
 import os
 
 import cv2
 import matplotlib
-matplotlib.use("Agg")          
+matplotlib.use("Agg")        
 import matplotlib.pyplot as plt
 import pandas as pd
 
 
 def summary(name, df):
-    
+    """Print the numbers you will quote in the report."""
     healthy = df[df["status"] == "AGREE"]
     found = df[df["det_found"] == 1]
 
@@ -55,7 +51,7 @@ def find_failures(df, min_length=3):
     rows = []
     for a, b in windows:
         if b - a + 1 < min_length:
-            continue                      
+            continue                      # ignore 1-2 frame blips
         part = df.iloc[a:b + 1]
         rows.append({
             "start": int(part["frame"].iloc[0]),
@@ -90,7 +86,7 @@ def make_plot(df_a, df_b, out_dir):
             if df is None:
                 continue
             values = df[column]
-
+           
             if column == "iou":
                 values = values.where(df["det_found"] == 1)
             ax.plot(df["frame"], values, linewidth=1.1, label=name, color=color)
@@ -127,17 +123,29 @@ def save_frames(video, frame_numbers, out_dir):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--csv-a")
-    parser.add_argument("--csv-b")
-    parser.add_argument("--video", help="annotated video to cut frames from")
-    parser.add_argument("--frames", help="e.g. 515,565,320")
+    parser.add_argument("--csv-a", default="results/video_a_log.csv")
+    parser.add_argument("--csv-b", default="results/video_b_log.csv")
+    parser.add_argument("--video", help="annotated video to cut frames from; "
+                                        "default: results/video_b_out.mp4")
+    parser.add_argument("--frames", help="e.g. 190,700,435")
     parser.add_argument("--out-dir", default="results")
     args = parser.parse_args()
 
     os.makedirs(args.out_dir, exist_ok=True)
 
-    df_a = pd.read_csv(args.csv_a) if args.csv_a else None
-    df_b = pd.read_csv(args.csv_b) if args.csv_b else None
+
+    csv_a = args.csv_a if os.path.exists(args.csv_a) else None
+    csv_b = args.csv_b if os.path.exists(args.csv_b) else None
+    if csv_a is None and csv_b is None:
+        raise SystemExit(f"No logs found. Expected {args.csv_a} or "
+                         f"{args.csv_b}. Run detect_track.py first.")
+
+    # Frames are cut from video B's annotated output unless told otherwise.
+    if args.frames and args.video is None:
+        args.video = "results/video_b_out.mp4"
+
+    df_a = pd.read_csv(csv_a) if csv_a else None
+    df_b = pd.read_csv(csv_b) if csv_b else None
 
     for name, df in (("A", df_a), ("B", df_b)):
         if df is not None:
@@ -146,9 +154,9 @@ def main():
 
     if df_b is not None:
         failures = find_failures(df_b)
-        print("\n Failure windows in video B ")
+        print("\n===== Failure windows in video B (longest first) =====")
         print(failures.to_string(index=False) if len(failures) else "none")
-        
+       
 
     if df_a is not None or df_b is not None:
         make_plot(df_a, df_b, args.out_dir)

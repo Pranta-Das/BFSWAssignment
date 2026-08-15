@@ -1,19 +1,6 @@
-"""
-detect_track.py
----------------
-Runs a detector and a tracker over a video AT THE SAME TIME, in two
-independent branches, and writes one row of measurements per frame to a CSV.
 
-Why two independent branches instead of "detect once, then track"?
-Because it lets us tell WHICH part failed. If the detector confidence stays
-high but the two boxes stop overlapping, the tracker drifted. If the tracker
-still reports a box but the detector found nothing, the object is still
-roughly where we think it is but the detector can no longer recognise it.
+##Runs a detector and a tracker over a video AT THE SAME TIME, in two independent branches, and writes one row of measurements per frame to a CSV.
 
-Run:
-    python detect_track.py --video data/video_a.mp4 --target cup \
-        --out-video results/video_a_out.mp4 --out-csv results/video_a_log.csv
-"""
 
 import argparse
 import csv
@@ -24,9 +11,8 @@ import cv2
 import numpy as np
 
 
-# ---------------------------------------------------------------------------
 # 1. Detector
-# ---------------------------------------------------------------------------
+
 class Detector:
     """Wraps a pretrained YOLO model and returns only the target object."""
 
@@ -36,8 +22,7 @@ class Detector:
         self.model = YOLO(weights)
         self.conf = conf
 
-        # YOLO knows 80 COCO classes. Find the numeric id of the one we want,
-        # so the model can ignore everything else.
+        
         self.class_ids = [
             i for i, name in self.model.names.items()
             if name.lower() == target.lower()
@@ -64,9 +49,9 @@ class Detector:
         return box, float(confs[best])
 
 
-# ---------------------------------------------------------------------------
+
 # 2. Tracker
-# ---------------------------------------------------------------------------
+
 def make_tracker(name="CSRT"):
     """Create an OpenCV tracker.
 
@@ -82,7 +67,7 @@ def make_tracker(name="CSRT"):
         "MIL":  ["TrackerMIL.create", "TrackerMIL_create"],
     }
 
-    # Try the tracker we asked for first, then the others as a fallback.
+   
     order = [name.upper()] + [n for n in ("CSRT", "KCF", "MIL")
                               if n != name.upper()]
 
@@ -109,9 +94,9 @@ def make_tracker(name="CSRT"):
     )
 
 
-# ---------------------------------------------------------------------------
+
 # 3. Small helper functions
-# ---------------------------------------------------------------------------
+
 def iou(box_a, box_b):
     """Intersection over Union: how much two boxes overlap. 0 = not at all."""
     if box_a is None or box_b is None:
@@ -150,12 +135,7 @@ def to_xyxy(box):
 
 
 def image_quality(frame):
-    """Measure the frame itself, not the detection.
-
-    These two numbers are the physical evidence for the failure analysis.
-    Without them you can only say "the detector failed"; with them you can
-    say "the detector failed while sharpness dropped from 340 to 42".
-    """
+    """Measure the frame itself, not the detection."""
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     return {
         "sharpness": float(cv2.Laplacian(gray, cv2.CV_64F).var()),
@@ -227,14 +207,13 @@ COLUMNS = [
 ]
 
 
-# ---------------------------------------------------------------------------
 # 4. Main loop
-# ---------------------------------------------------------------------------
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--video", required=True)
-    parser.add_argument("--out-video", required=True)
-    parser.add_argument("--out-csv", required=True)
+    parser.add_argument("--out-video", help="default: results/<name>_out.mp4")
+    parser.add_argument("--out-csv", help="default: results/<name>_log.csv")
     parser.add_argument("--target", default="cup", help="COCO class name")
     parser.add_argument("--weights", default="yolov8n.pt")
     parser.add_argument("--conf", type=float, default=0.25)
@@ -243,6 +222,15 @@ def main():
                         help="Restart the tracker from the detector when it "
                              "fails. OFF by default so drift stays visible.")
     args = parser.parse_args()
+
+  
+    name = os.path.splitext(os.path.basename(args.video))[0]
+    suffix = "_reinit" if args.reinit_on_lost else ""
+    if args.out_video is None:
+        args.out_video = f"results/{name}{suffix}_out.mp4"
+    if args.out_csv is None:
+        args.out_csv = f"results/{name}{suffix}_log.csv"
+    print(f"writing {args.out_video} and {args.out_csv}")
 
     # Make sure the output folders exist.
     os.makedirs(os.path.dirname(args.out_video) or ".", exist_ok=True)
@@ -274,12 +262,12 @@ def main():
         if not ok:
             break   # end of video
 
-        # --- branch 1: detector ------------------------------------------
+        # detector 
         start = time.perf_counter()
         det_box, det_conf = detector.detect(frame)
         det_ms = (time.perf_counter() - start) * 1000.0
 
-        # --- branch 2: tracker (does NOT look at the detector) ------------
+        # tracker 
         trk_box = None
         if tracker is None:
             # Start the tracker once, from the first detection we get.
@@ -296,7 +284,7 @@ def main():
                 tracker.init(frame, to_xywh(det_box))
                 trk_box = det_box.copy()
 
-        # --- compare the two branches ------------------------------------
+        # compare 
         iou_value = iou(det_box, trk_box)
         status = get_status(det_box, trk_box, iou_value)
         quality = image_quality(frame)

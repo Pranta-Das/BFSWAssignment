@@ -19,3 +19,7 @@ trying to making normal and complex situation for the video so the i can run the
  ## Day 5 
  Thinking about the result and analys that result and preparing everything for making the report.
  And start writing the report.
+
+##  Model 
+
+Chose YOLOv8n (COCO pretrained) and OpenCV CSRT.
