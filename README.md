@@ -65,7 +65,7 @@ input video:
 
 video-a: https://drive.google.com/file/d/1_2-e4IsE1nwhKVP4PzxZBCTJ046hXSzz/view?usp=sharing
 
-video-b: https://drive.google.com/file/d/1hSmYD3lR_jMZ5v9VO21dAO4BnOV5cqM9/view?usp=sharing
+video-b: https://drive.google.com/file/d/1Dz4d5mhYJc603CLw4vCyj79nRU1i2RMo/view?usp=sharing
 
 Result: 
 
