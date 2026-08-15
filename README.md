@@ -18,17 +18,31 @@ pip install -r requirements.txt
 ## Run
 
 ```bash
-python detect_track.py --video data/video_a.mp4 --target cup \
-    --out-video results/video_a_out.mp4 --out-csv results/video_a_log.csv
+python detect_track.py --video data/video_a.mp4
+python detect_track.py --video data/video_b.mp4
 
-python detect_track.py --video data/video_b.mp4 --target cup \
-    --out-video results/video_b_out.mp4 --out-csv results/video_b_log.csv
+python analyze.py
 
-python analyze.py --csv-a results/video_a_log.csv \
-    --csv-b results/video_b_log.csv --out-dir results
 
-python verify.py --video data/video_b.mp4 --frame 515 --good-frame 120 \
-    --target cup
+
+
+## tracker failures
+python diagnose_tracker.py
+
+## detector failure
+python verify.py --frame 190 --good-frame 100
+
+## re-init experiment
+python detect_track.py --video data/video_b.mp4 --reinit-on-lost
+python diagnose_tracker.py --csv results/video_b_reinit_log.csv
+
+## screenshot
+
+python analyze.py --frames 190,700,435
+
+
+
+
 ```
 
 ## Files
@@ -40,7 +54,7 @@ python verify.py --video data/video_b.mp4 --frame 515 --good-frame 120 \
 
 (verify.py)  tests the cause of a specific failure
 
-(check_videos.py)  sanity-checks recordings before processing
+(diagnose_traker.py)  check tracker faliures
 
 (experiment_log.md)  what was tried, what failed, and why
 

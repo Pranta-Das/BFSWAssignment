@@ -1,0 +1,8 @@
+# ultralytics must be >=8.4 -- 8.3.x caps numpy below 2.0, which
+# conflicts with opencv-contrib-python 4.12 (needs numpy >= 2.0).
+# opencv must stay below 5.0 -- OpenCV 5.0 removed the CSRT tracker.
+ultralytics>=8.4
+opencv-contrib-python>=4.10,<5
+numpy>=2.0,<2.3
+pandas>=2.0
+matplotlib>=3.7
